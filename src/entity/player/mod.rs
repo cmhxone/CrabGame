@@ -1,9 +1,11 @@
 // Player Struct
+use super::velocity::Velocity;
 
 pub struct Player<'p> {
-    pub dst_rect: sdl2::rect::Rect,
+    pub dst_rect: Option<sdl2::rect::Rect>,
     pub src_rect: Option<sdl2::rect::Rect>,
-    pub texture: sdl2::render::Texture<'p>,
+    pub texture: Option<sdl2::render::Texture<'p>>,
+    pub velocity: Option<Velocity>,
 }
 
 impl Player<'_> {

@@ -1,7 +1,6 @@
 extern crate sdl2; 
 
-mod player;
-mod velocity;
+mod entity;
 
 use sdl2::pixels::Color;
 use sdl2::event::Event;
@@ -9,8 +8,8 @@ use sdl2::keyboard::Keycode;
 use sdl2::image::{LoadTexture, InitFlag};
 use sdl2::gfx::framerate::FPSManager;
 use std::collections::HashMap;
-use player::Player;
-use velocity::Velocity;
+use entity::player::Player;
+use entity::velocity::Velocity;
 
 // Constants
 const SCREEN_WIDTH:u32 = 800;
@@ -44,20 +43,21 @@ pub fn main() {
     let player_texture = texture_creator.load_texture_bytes(player_image).unwrap();
     let mut player: Player<'_> = Player{
         src_rect: None,
-        dst_rect: sdl2::rect::Rect::new(0, 0, 0, 0),
-        texture: player_texture
+        dst_rect: Some(sdl2::rect::Rect::new(0, 0, 0, 0)),
+        texture: Some(player_texture),
+        velocity: Some(Velocity{x: 0.0, y: 0.0}),
     };
 
     // Set Player Object Size
-    player.dst_rect = Player::set_dst_rect(
+    player.dst_rect = Some(Player::set_dst_rect(
         (SCREEN_WIDTH / 2 - 100 / 2) as i32,
         (SCREEN_HEIGHT / 2 - 74 / 2) as i32,
         100,
          74
-    );
+    ));
 
     // Movements Velocity
-    let mut velocity = Velocity{ x: 0.0, y: 0.0 };
+    // let mut velocity = Velocity{ x: 0.0, y: 0.0 };
 
     let mut keypressed = HashMap::new();
     keypressed.insert("Right", false);
@@ -94,12 +94,12 @@ pub fn main() {
                 _ => {}
             }
         }
-        movements(&mut keypressed, &mut velocity, &mut player);
+        movements(&mut keypressed, &mut player);
 
         // The rest of the game loop goes here...
 
         // Draw Texture
-        canvas.copy(&player.texture, player.src_rect, player.dst_rect).unwrap();
+        canvas.copy(&player.texture.as_ref().unwrap(), player.src_rect, player.dst_rect).unwrap();
 
         canvas.present();
 
@@ -107,7 +107,7 @@ pub fn main() {
     }
 }
 
-fn movements(keypressed: &mut HashMap<&str, bool>, velocity: &mut Velocity, player: &mut Player) {
+fn movements(keypressed: &mut HashMap<&str, bool>, player: &mut Player) {
     let right_key = Some(keypressed.get("Right"));
     let left_key = Some(keypressed.get("Left"));
     let up_key = Some(keypressed.get("Up"));
@@ -115,31 +115,42 @@ fn movements(keypressed: &mut HashMap<&str, bool>, velocity: &mut Velocity, play
 
     // Horizontal Key Down Events
     if right_key.unwrap() == Some(&true) {
-        velocity.x = MOVE_SPEED;
+        player.velocity = Some(Velocity::new(MOVE_SPEED, player.velocity.as_ref().unwrap().y));
     } else if left_key.unwrap() == Some(&true) {
-        velocity.x = -MOVE_SPEED;
+        player.velocity = Some(Velocity::new(-MOVE_SPEED, player.velocity.as_ref().unwrap().y));
     }else if right_key.unwrap() == Some(&false) {
-        velocity.x = 0.0;
+        player.velocity = Some(Velocity::new(0.0, player.velocity.as_ref().unwrap().y));
     } else if left_key.unwrap() == Some(&false) {
-        velocity.x = 0.0;
+        player.velocity = Some(Velocity::new(0.0, player.velocity.as_ref().unwrap().y));
     }
 
     // Vertical Key Down Events
     if up_key.unwrap() == Some(&true) {
-        velocity.y = -MOVE_SPEED;
+        player.velocity = Some(Velocity::new(player.velocity.as_ref().unwrap().x, -MOVE_SPEED));
     } else if down_key.unwrap() == Some(&true) {
-        velocity.y = MOVE_SPEED;
-    } else if up_key.unwrap() == Some(&false) {
-        velocity.y = 0.0;
+        player.velocity = Some(Velocity::new(player.velocity.as_ref().unwrap().x, MOVE_SPEED));
+    }else if up_key.unwrap() == Some(&false) {
+        player.velocity = Some(Velocity::new(player.velocity.as_ref().unwrap().x, 0.0));
     } else if down_key.unwrap() == Some(&false) {
-        velocity.y = 0.0;
+        player.velocity = Some(Velocity::new(player.velocity.as_ref().unwrap().x, 0.0));
     }
 
-    if velocity.x != 0.0 && velocity.y != 0.0 {
-        player.dst_rect.x += (velocity.x / 1.414213) as i32;
-        player.dst_rect.y += (velocity.y / 1.414213) as i32;
+    // Movements Edit
+    if player.velocity.as_ref().unwrap().x != 0.0 && player.velocity.as_ref().unwrap().y != 0.0 {
+        player.dst_rect = Some(Player::set_dst_rect(
+            player.dst_rect.unwrap().x() + (player.velocity.as_ref().unwrap().x / 1.414213) as i32,
+            player.dst_rect.unwrap().y() + (player.velocity.as_ref().unwrap().y / 1.414213) as i32,
+            player.dst_rect.unwrap().width(),
+            player.dst_rect.unwrap().height(),
+        ));
     } else {
-        player.dst_rect.x += velocity.x as i32;
-        player.dst_rect.y += velocity.y as i32;
+        player.dst_rect = Some(Player::set_dst_rect(
+            player.dst_rect.unwrap().x() + player.velocity.as_ref().unwrap().x as i32,
+            player.dst_rect.unwrap().y() + player.velocity.as_ref().unwrap().y as i32,
+            player.dst_rect.unwrap().width(),
+            player.dst_rect.unwrap().height(),
+        ));
     }
+
+    
 }
