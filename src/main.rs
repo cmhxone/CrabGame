@@ -7,6 +7,7 @@ use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::image::{LoadTexture, InitFlag};
 use sdl2::gfx::framerate::FPSManager;
+use sdl2::rect::Rect;
 use std::collections::HashMap;
 use entity::player::Player;
 use entity::velocity::Velocity;
@@ -45,7 +46,7 @@ pub fn main() {
     let player_texture = texture_creator.load_texture_bytes(player_image).unwrap();
     let mut player: Player<'_> = Player{
         src_rect: None,
-        dst_rect: Some(sdl2::rect::Rect::new(0, 0, 0, 0)),
+        dst_rect: Some(Rect::new(0, 0, 0, 0)),
         texture: Some(player_texture),
         velocity: Some(Velocity{x: 0.0, y: 0.0}),
     };
@@ -76,6 +77,8 @@ pub fn main() {
     canvas.clear();
     canvas.present();
 
+    let mut i = 0;
+
     let mut event_pump = sdl_context.event_pump().unwrap();
     'running: loop {
         // Clearing Screens
@@ -88,7 +91,6 @@ pub fn main() {
                 Event::KeyDown { keycode: Some(Keycode::Escape), .. } => {
                     break 'running
                 },
-                // TODO: Smoother way to move Crab
                 Event::KeyDown { keycode: Some(Keycode::Right), .. } => { keypressed.insert("Right", true); },
                 Event::KeyUp { keycode: Some(Keycode::Right), .. } => { keypressed.insert("Right", false); }
                 Event::KeyDown { keycode: Some(Keycode::Left), .. } => { keypressed.insert("Left", true); },
