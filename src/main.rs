@@ -12,10 +12,12 @@ use entity::player::Player;
 use entity::velocity::Velocity;
 
 // Constants
-const SCREEN_WIDTH:u32 = 800;
-const SCREEN_HEIGHT:u32 = 600;
-const FPS:u32 = 60;
-const MOVE_SPEED:f32 = 5.0;
+const SCREEN_WIDTH: u32 = 1280;
+const SCREEN_HEIGHT: u32 = 720;
+const PLAYER_WIDTH: u32 = 160;
+const PLAYER_HEIGHT: u32 = 84;
+const FPS: u32 = 60;
+const MOVE_SPEED: f32 = 5.0;
 
 pub fn main() {
     let sdl_context = sdl2::init().unwrap();
@@ -48,16 +50,20 @@ pub fn main() {
         velocity: Some(Velocity{x: 0.0, y: 0.0}),
     };
 
-    // Set Player Object Size
-    player.dst_rect = Some(Player::set_dst_rect(
-        (SCREEN_WIDTH / 2 - 100 / 2) as i32,
-        (SCREEN_HEIGHT / 2 - 74 / 2) as i32,
-        100,
-         74
+    player.src_rect = Some(Player::set_src_rect(
+        PLAYER_WIDTH as i32 * 0,
+        PLAYER_HEIGHT as i32 * 0,
+        PLAYER_WIDTH,
+        PLAYER_HEIGHT
     ));
 
-    // Movements Velocity
-    // let mut velocity = Velocity{ x: 0.0, y: 0.0 };
+    // Set Player Object Size
+    player.dst_rect = Some(Player::set_dst_rect(
+        (SCREEN_WIDTH / 2 - PLAYER_WIDTH / 2) as i32,
+        (SCREEN_HEIGHT / 2 - PLAYER_HEIGHT / 2) as i32,
+        PLAYER_WIDTH,
+        PLAYER_HEIGHT
+    ));
 
     let mut keypressed = HashMap::new();
     keypressed.insert("Right", false);
@@ -94,7 +100,7 @@ pub fn main() {
                 _ => {}
             }
         }
-        movements(&mut keypressed, &mut player);
+        player_movements(&mut keypressed, &mut player);
 
         // The rest of the game loop goes here...
 
@@ -107,7 +113,8 @@ pub fn main() {
     }
 }
 
-fn movements(keypressed: &mut HashMap<&str, bool>, player: &mut Player) {
+// Player Movements
+fn player_movements(keypressed: &HashMap<&str, bool>, player: &mut Player) {
     let right_key = Some(keypressed.get("Right"));
     let left_key = Some(keypressed.get("Left"));
     let up_key = Some(keypressed.get("Up"));
@@ -116,8 +123,20 @@ fn movements(keypressed: &mut HashMap<&str, bool>, player: &mut Player) {
     // Horizontal Key Down Events
     if right_key.unwrap() == Some(&true) {
         player.velocity = Some(Velocity::new(MOVE_SPEED, player.velocity.as_ref().unwrap().y));
+        player.src_rect = Some(Player::set_src_rect(
+            PLAYER_WIDTH as i32 * 0,
+            PLAYER_HEIGHT as i32 * 0,
+            PLAYER_WIDTH,
+            PLAYER_HEIGHT
+        ));
     } else if left_key.unwrap() == Some(&true) {
         player.velocity = Some(Velocity::new(-MOVE_SPEED, player.velocity.as_ref().unwrap().y));
+        player.src_rect = Some(Player::set_src_rect(
+            PLAYER_WIDTH as i32 * 1,
+            PLAYER_HEIGHT as i32 * 0,
+            PLAYER_WIDTH,
+            PLAYER_HEIGHT
+        ));
     }else if right_key.unwrap() == Some(&false) {
         player.velocity = Some(Velocity::new(0.0, player.velocity.as_ref().unwrap().y));
     } else if left_key.unwrap() == Some(&false) {
@@ -150,7 +169,5 @@ fn movements(keypressed: &mut HashMap<&str, bool>, player: &mut Player) {
             player.dst_rect.unwrap().width(),
             player.dst_rect.unwrap().height(),
         ));
-    }
-
-    
+    }    
 }
