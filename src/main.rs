@@ -2,6 +2,7 @@ extern crate sdl2;
 
 mod entity;
 
+use rand::Rng;
 use sdl2::pixels::Color;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
@@ -11,6 +12,7 @@ use sdl2::rect::Rect;
 use std::collections::HashMap;
 use entity::player::Player;
 use entity::velocity::Velocity;
+use entity::item::Item;
 
 // Constants
 const SCREEN_WIDTH: u32 = 1280;
@@ -40,6 +42,7 @@ pub fn main() {
 
     // Texture Creator
     let player_image = include_bytes!("../cuddlyferris-in-game.png");
+    let coin_image = include_bytes!("../coin.png");
     let texture_creator = canvas.texture_creator();
 
     // Create Texture and Send to Player Struct
@@ -51,7 +54,8 @@ pub fn main() {
         velocity: Some(Velocity{x: 0.0, y: 0.0}),
     };
 
-    player.src_rect = Some(Player::set_src_rect(
+    // Set Player Sprite Size
+    player.src_rect = Some(Player::set_rect(
         PLAYER_WIDTH as i32 * 0,
         PLAYER_HEIGHT as i32 * 0,
         PLAYER_WIDTH,
@@ -59,13 +63,26 @@ pub fn main() {
     ));
 
     // Set Player Object Size
-    player.dst_rect = Some(Player::set_dst_rect(
+    player.dst_rect = Some(Player::set_rect(
         (SCREEN_WIDTH / 2 - PLAYER_WIDTH / 2) as i32,
         (SCREEN_HEIGHT / 2 - PLAYER_HEIGHT / 2) as i32,
         PLAYER_WIDTH,
         PLAYER_HEIGHT
     ));
 
+    // Init Coin
+    let mut coins: Vec<Item> = Vec::with_capacity(20);
+    for _ in 0 .. 20 {
+        coins.push(
+            Item{
+                src_rect: Some(Rect::new(0, 0, 50, 50)),
+                dst_rect: Some(Rect::new(rand::thread_rng().gen_range(0, SCREEN_WIDTH - 50) as i32, rand::thread_rng().gen_range(0, 720 - 50) as i32, 50, 50)),
+                texture: Some(texture_creator.load_texture_bytes(coin_image).unwrap())
+            }
+        );
+    }
+
+    // Init Keypresses
     let mut keypressed = HashMap::new();
     keypressed.insert("Right", false);
     keypressed.insert("Left", false);
@@ -102,9 +119,16 @@ pub fn main() {
                 _ => {}
             }
         }
+        // Move Player
         player_movements(&mut keypressed, &mut player);
 
+        i += 1;
+
         // The rest of the game loop goes here...
+        for coin in &mut coins {
+            coin.src_rect = Some(Item::set_rect(50 * (i % 3), 0, 50, 50));
+            canvas.copy(&coin.texture.as_ref().unwrap(), coin.src_rect, coin.dst_rect).unwrap();
+        }
 
         // Draw Texture
         canvas.copy(&player.texture.as_ref().unwrap(), player.src_rect, player.dst_rect).unwrap();
@@ -125,7 +149,7 @@ fn player_movements(keypressed: &HashMap<&str, bool>, player: &mut Player) {
     // Horizontal Key Down Events
     if right_key.unwrap() == Some(&true) {
         player.velocity = Some(Velocity::new(MOVE_SPEED, player.velocity.as_ref().unwrap().y));
-        player.src_rect = Some(Player::set_src_rect(
+        player.src_rect = Some(Player::set_rect(
             PLAYER_WIDTH as i32 * 0,
             PLAYER_HEIGHT as i32 * 0,
             PLAYER_WIDTH,
@@ -133,7 +157,7 @@ fn player_movements(keypressed: &HashMap<&str, bool>, player: &mut Player) {
         ));
     } else if left_key.unwrap() == Some(&true) {
         player.velocity = Some(Velocity::new(-MOVE_SPEED, player.velocity.as_ref().unwrap().y));
-        player.src_rect = Some(Player::set_src_rect(
+        player.src_rect = Some(Player::set_rect(
             PLAYER_WIDTH as i32 * 1,
             PLAYER_HEIGHT as i32 * 0,
             PLAYER_WIDTH,
@@ -158,14 +182,14 @@ fn player_movements(keypressed: &HashMap<&str, bool>, player: &mut Player) {
 
     // Movements Edit
     if player.velocity.as_ref().unwrap().x != 0.0 && player.velocity.as_ref().unwrap().y != 0.0 {
-        player.dst_rect = Some(Player::set_dst_rect(
+        player.dst_rect = Some(Player::set_rect(
             player.dst_rect.unwrap().x() + (player.velocity.as_ref().unwrap().x / 1.414213) as i32,
             player.dst_rect.unwrap().y() + (player.velocity.as_ref().unwrap().y / 1.414213) as i32,
             player.dst_rect.unwrap().width(),
             player.dst_rect.unwrap().height(),
         ));
     } else {
-        player.dst_rect = Some(Player::set_dst_rect(
+        player.dst_rect = Some(Player::set_rect(
             player.dst_rect.unwrap().x() + player.velocity.as_ref().unwrap().x as i32,
             player.dst_rect.unwrap().y() + player.velocity.as_ref().unwrap().y as i32,
             player.dst_rect.unwrap().width(),

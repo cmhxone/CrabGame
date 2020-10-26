@@ -11,11 +11,7 @@ pub struct Player<'p> {
 
 impl Player<'_> {
     // Create player struct with x, y, w, h Rect
-    pub fn set_dst_rect(x: i32, y: i32, width: u32, height: u32) -> Rect {
-        Rect::new(x, y, width, height)
-    }
-
-    pub fn set_src_rect(x: i32, y: i32, width: u32, height: u32) -> Rect {
+    pub fn set_rect(x: i32, y: i32, width: u32, height: u32) -> Rect {
         Rect::new(x, y, width, height)
     }
 }
