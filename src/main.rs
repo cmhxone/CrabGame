@@ -131,7 +131,7 @@ pub fn main() {
             canvas.copy(coin.texture.as_ref().unwrap(), coin.src_rect, coin.dst_rect).unwrap();
         }
 
-        if (coin_count > 0) {
+        if coin_count > 0 {
             coins.get_mut(coin_count - 1).unwrap().src_rect = Some(Rect::new((frame / 2 % 3) * 50, 50, 50, 50));
             canvas.copy(coins.get(coin_count -1).unwrap().texture.as_ref().unwrap(), coins.get(coin_count-1).unwrap().src_rect, coins.get(coin_count-1).unwrap().dst_rect).unwrap();
 
