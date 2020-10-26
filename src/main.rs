@@ -71,9 +71,10 @@ pub fn main() {
     ));
 
     // Init Coin
-    let mut coins: Vec<Item> = Vec::with_capacity(20);
-    for _ in 0 .. 20 {
-        coins.push(
+    let mut coin_count = 20;
+    let mut coins: Vec<Item<'_>> = Vec::with_capacity(coin_count);
+    for i in 0 .. coin_count {
+        coins.insert(i, 
             Item{
                 src_rect: Some(Rect::new(0, 0, 50, 50)),
                 dst_rect: Some(Rect::new(rand::thread_rng().gen_range(0, SCREEN_WIDTH - 50) as i32, rand::thread_rng().gen_range(0, 720 - 50) as i32, 50, 50)),
@@ -94,10 +95,12 @@ pub fn main() {
     canvas.clear();
     canvas.present();
 
-    let mut i = 0;
+    let mut frame = 0;
 
     let mut event_pump = sdl_context.event_pump().unwrap();
     'running: loop {
+        frame += 1;
+
         // Clearing Screens
         canvas.clear();
 
@@ -122,12 +125,20 @@ pub fn main() {
         // Move Player
         player_movements(&mut keypressed, &mut player);
 
-        i += 1;
-
         // The rest of the game loop goes here...
         for coin in &mut coins {
-            coin.src_rect = Some(Item::set_rect(50 * (i % 3), 0, 50, 50));
-            canvas.copy(&coin.texture.as_ref().unwrap(), coin.src_rect, coin.dst_rect).unwrap();
+            coin.src_rect = Some(Rect::new((frame / 2 % 3) * 50, 0, 50, 50));
+            canvas.copy(coin.texture.as_ref().unwrap(), coin.src_rect, coin.dst_rect).unwrap();
+        }
+
+        if (coin_count > 0) {
+            coins.get_mut(coin_count - 1).unwrap().src_rect = Some(Rect::new((frame / 2 % 3) * 50, 50, 50, 50));
+            canvas.copy(coins.get(coin_count -1).unwrap().texture.as_ref().unwrap(), coins.get(coin_count-1).unwrap().src_rect, coins.get(coin_count-1).unwrap().dst_rect).unwrap();
+
+            if player.is_collide(&coins.get(coin_count - 1).unwrap()) {
+                coins.pop();
+                coin_count -= 1;
+            }
         }
 
         // Draw Texture
